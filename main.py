@@ -11,6 +11,7 @@ from roll_dice import roll_dice
 # Import the music_cog
 from music_cog import music_cog
 from help_cog import help_cog
+from quality_cog import quality_cog
 
 intents = nextcord.Intents.default()
 intents.members = True
@@ -33,6 +34,7 @@ async def on_ready():
     bot.add_cog(music_cog(bot))
     bot.add_cog(roll_dice(bot))
     bot.add_cog(help_cog(bot))
+    bot.add_cog(quality_cog(bot))
     print(f"{bot.user.name} has connected to Discord!")
 
 
