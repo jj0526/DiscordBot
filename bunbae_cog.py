@@ -16,7 +16,7 @@ class bunbae_cog(commands.Cog):
         
         # 본인 : x-50
         # 다른이 : x*0.95
-        await ctx.send(f"{member.mention} rolled {}!")
+        #await ctx.send(f"{member.mention} rolled {}!")
 
 '''
 def setup(bot):
