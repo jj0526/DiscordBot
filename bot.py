@@ -7,7 +7,6 @@ from discord.ext import commands
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-#TOKEN = "MTExNTg3MTIwOTY0OTg4NTIzNQ.GY8mld.yx_QMUcCwPOLOedfZrMEPjs5gycG8e8yXBz8Xs"
 GUILD = os.getenv('DISCORD_GUILD')
 
 print()
