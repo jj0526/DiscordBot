@@ -41,7 +41,6 @@ others :
         for text_channel in self.text_channel_list:
             await text_channel.send(msg)
             
-'''
+
 def setup(bot):
     bot.add_cog(help_cog(bot))
-'''

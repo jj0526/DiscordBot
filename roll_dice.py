@@ -13,7 +13,6 @@ class roll_dice(commands.Cog):
         diceNum = str(random.choice(range(1, number_of_sides + 1)))
         await ctx.send(f"{member.mention} rolled {diceNum}!")
 
-'''
+
 def setup(bot):
     bot.add_cog(roll_dice(bot))
-'''

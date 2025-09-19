@@ -45,7 +45,6 @@ class quality_cog(commands.Cog):
         
         await ctx.send(f"{member.mention} got {quality_num} on their weapon!")
 
-'''
+
 def setup(bot):
     bot.add_cog(tapQuality(bot))
-'''

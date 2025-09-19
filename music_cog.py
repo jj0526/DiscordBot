@@ -236,3 +236,7 @@ async def disconnect_after_timeout(self, ctx, timeout=600):  # 600초 = 10분
         em = Embed(title=f"{api.title} by {api.artist}", description=Lyrics)
         em.set_footer(text = interaction.user.name, icon_url = interaction.user.display_avatar)
         await interaction.edit_original_message(embed=em)
+
+def setup(bot):
+    bot.add_cog(music_cog(bot))
+
