@@ -14,5 +14,5 @@ class roll_dice(commands.Cog):
         await ctx.send(f"{member.mention} rolled {diceNum}!")
 
 
-def setup(bot):
-    bot.add_cog(roll_dice(bot))
+async def setup(bot):
+    await bot.add_cog(roll_dice(bot))
