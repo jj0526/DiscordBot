@@ -21,12 +21,11 @@ bot = commands.Bot(command_prefix="?", intents=intents)
 
 @bot.event
 async def on_ready():
+    await bot.add_cog(music_cog(bot))
+    await bot.add_cog(roll_dice(bot))
+    await bot.add_cog(help_cog(bot))
+    await bot.add_cog(quality_cog(bot))
     print(f"{bot.user.name} has connected to Discord!")
-
-bot.add_cog(music_cog(bot))
-bot.add_cog(roll_dice(bot))
-bot.add_cog(help_cog(bot))
-bot.add_cog(quality_cog(bot))
 
 bot.remove_command('help')
 # Remove the default help command so that we can write our own
