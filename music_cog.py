@@ -1,9 +1,8 @@
-import nextcord
-from nextcord.ext import commands
-from nextcord import Embed
+import discord
+from discord.ext import commands
+from discord import Embed
 from azapi import AZlyrics
 import yt_dlp
-import re
 import asyncio
 
 class music_cog(commands.Cog):
@@ -41,7 +40,7 @@ class music_cog(commands.Cog):
             self.music_queue[ctx.guild.id].pop(0)
             self.currently_playing[ctx.guild.id].pop(0)
             self.vc.play(
-                nextcord.FFmpegPCMAudio(m_url, **self.FFMPEG_OPTIONS), 
+                discord.FFmpegPCMAudio(m_url, **self.FFMPEG_OPTIONS), 
                 after=lambda e: self.bot.loop.call_soon_threadsafe(
                     asyncio.create_task, self.play_next(ctx)
                 ))
@@ -52,7 +51,7 @@ class music_cog(commands.Cog):
         if len(self.music_queue[ctx.guild.id]) > 0:
             self.is_playing[ctx.guild.id] = True
             m_url = self.music_queue[ctx.guild.id][0][0]['source']
-            voice_client = nextcord.utils.get(self.bot.voice_clients, guild=ctx.guild)
+            voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
 
             if self.vc == None or not voice_client:
                 self.vc = await self.music_queue[ctx.guild.id][0][1].connect()
@@ -67,7 +66,7 @@ class music_cog(commands.Cog):
             self.music_queue[ctx.guild.id].pop(0)
             
 
-            self.vc.play(nextcord.FFmpegPCMAudio(m_url, **self.FFMPEG_OPTIONS), after=lambda e: self.play_next(ctx))
+            self.vc.play(discord.FFmpegPCMAudio(m_url, **self.FFMPEG_OPTIONS), after=lambda e: self.play_next(ctx))
             
         else:
             self.is_playing[ctx.guild.id] = False
@@ -219,8 +218,8 @@ async def disconnect_after_timeout(self, ctx, timeout=600):  # 600초 = 10분
             if type(Lyrics) == int:
                 await ctx.send("Could not find lyrics, try /lyrics song")
 
-    @nextcord.slash_command(name='lyrics', description='find lyrics')
-    async def lyrics(self, interaction: nextcord.Interaction, song_query:str):
+    @discord.slash_command(name='lyrics', description='find lyrics')
+    async def lyrics(self, interaction: discord.Interaction, song_query:str):
         """Displays lyrics
 
         Parameters
