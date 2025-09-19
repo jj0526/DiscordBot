@@ -21,9 +21,14 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             cd /home/ubuntu/music_bot
+
+            # 기존 프로세스 종료
+            pkill -f main/main.py || true
+
             if [ -d "main" ]; then
               rm -rf main
             fi
+            
             git clone ${{ secrets.CLONE_URL }} main
             cd ..
             source venv/bin/activate
