@@ -45,14 +45,3 @@ async def roll(ctx, number_of_sides: int, member : discord.Member = None):
     diceNum = str(random.choice(range(1, number_of_sides + 1)))
     await ctx.send(f"{ctx.author.mention} rolled "+ diceNum + "!")
 
-
-@bot.command(name="create-channel")
-@commands.has_role("Uncle Bob")
-async def create_channel(ctx, channel_name="real-python"):
-    guild = ctx.guild
-    existing_channel = discord.utils.get(guild.channels, name=channel_name)
-    if not existing_channel:
-        print(f"Creating a new channel: {channel_name}")
-        await guild.create_text_channel(channel_name)
-
-bot.run(TOKEN)

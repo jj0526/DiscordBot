@@ -4,6 +4,7 @@ from nextcord import Embed
 from azapi import AZlyrics
 import yt_dlp
 import re
+import asyncio
 
 class music_cog(commands.Cog):
     def __init__(self, bot):
@@ -39,45 +40,14 @@ class music_cog(commands.Cog):
 
             self.music_queue[ctx.guild.id].pop(0)
             self.currently_playing[ctx.guild.id].pop(0)
-            self.vc.play(nextcord.FFmpegPCMAudio(m_url, **self.FFMPEG_OPTIONS), after=lambda e: self.play_next(ctx))
+            self.vc.play(
+                nextcord.FFmpegPCMAudio(m_url, **self.FFMPEG_OPTIONS), 
+                after=lambda e: self.bot.loop.call_soon_threadsafe(
+                    asyncio.create_task, self.play_next(ctx)
+                ))
         else:
             self.is_playing[ctx.guild.id] = False
     
-    '''
-    async def play_next(self, ctx):
-        if len(self.queue) > 0:
-            url = self.queue.pop(0)
-            self.voice.play(nextcord.FFmpegPCMAudio(url), after=lambda e: self.bot.loop.create_task(self.play_next(ctx)))
-            await ctx.send(f"Now playing: {url}")
-        else:
-            await ctx.send("Queue is empty. Use the play command to add songs.")
-    '''
-
-
-     
-    '''
-    async def play_music(self, ctx):
-        if len(self.music_queue[ctx.guild.id]) > 0:
-            self.is_playing[ctx.guild.id] = True
-            m_url = self.music_queue[ctx.guild.id][0][0]['source']
-            voice_client = nextcord.utils.get(self.bot.voice_clients, guild=ctx.guild)
-
-            if self.vc == None or not voice_client:
-                self.vc = await self.music_queue[ctx.guild.id][0][1].connect()
-                print("passing through here")
-
-                if self.vc == None:
-                    await ctx.send("Could not connect to the voice channel")
-                    return
-            else:
-                await self.vc.move_to(self.music_queue[ctx.guild.id][0][1])
-
-            self.music_queue[ctx.guild.id].pop(0)
-
-            self.vc.play(nextcord.FFmpegPCMAudio(m_url, **self.FFMPEG_OPTIONS), after=lambda e: self.play_next(ctx))
-        else:
-            self.is_playing[ctx.guild.id] = False
-    '''
     async def play_music(self, ctx):
         if len(self.music_queue[ctx.guild.id]) > 0:
             self.is_playing[ctx.guild.id] = True
@@ -102,8 +72,17 @@ class music_cog(commands.Cog):
         else:
             self.is_playing[ctx.guild.id] = False
             self.currently_playing[ctx.guild.id] = []  # Clear the currently playing song
-            await self.vc.disconnect()  # Disconnect from the voice channel
+            self.bot.loop.create_task(self.disconnect_after_timeout(ctx))   # Disconnect from the voice channel
         
+    
+async def disconnect_after_timeout(self, ctx, timeout=600):  # 600초 = 10분
+    await asyncio.sleep(timeout)
+    if not self.is_playing[ctx.guild.id] and not self.is_paused[ctx.guild.id]:
+        if self.vc and self.vc.is_connected():
+            await ctx.send("10분 동안 노래가 없어 자동으로 퇴장합니다.")
+            await self.vc.disconnect()
+            self.music_queue[ctx.guild.id] = []
+            self.currently_playing[ctx.guild.id] = []
     
     
     @commands.command(name="play", aliases=['p','playing'], help="Play the selected song from youtube")
@@ -154,29 +133,6 @@ class music_cog(commands.Cog):
             self.is_paused[ctx.guild.id] = False
             self.vc.resume()
 
-    '''
-    @commands.command(name="skip", aliases=["s"], help="Skips the current song being played")
-    async def skip(self, ctx):
-        if self.vc is not None and self.vc.is_playing():
-            self.vc.stop()
-            await ctx.send("Skipping current song")
-            # Try to play the next song in the queue if it exists
-            await self.play_music(ctx)
-        else:
-            await ctx.send("No song is currently playing.")
-    '''
-    '''
-    @commands.command(name="skip", aliases=["s"], help="Skips the current song being played")
-    async def skip(self, ctx):
-        if self.vc and self.vc.is_playing():
-            self.vc.stop()
-            await ctx.send("Skipping current song")
-        else:
-            await ctx.send("No song is currently playing.")
-
-        # Try to play the next song in the queue if it exists
-        await self.play_music(ctx)
-    '''
     @commands.command(name="skip", aliases=["s"], help="Skips the current song being played")
     async def skip(self, ctx):
         if self.vc and self.vc.is_playing():
@@ -189,24 +145,6 @@ class music_cog(commands.Cog):
 
         # Try to play the next song in the queue if it exists
         await self.play_music(ctx)
-        
-    '''
-    @commands.command(name="queue", aliases=["q"], help="Displays all the songs currently in the queue")
-    async def queue(self, ctx):
-        retval = ""
-        
-        for i in range(0, len(self.music_queue[ctx.guild.id])):
-            retval += f"**{i+1}. **" + self.music_queue[ctx.guild.id][i][0]['title'] + '\n'
-        
-        if retval != "" or self.currently_playing[ctx.guild.id][0][1]:
-            em = Embed(title=f"**Music Queue | {ctx.guild.name}**", description=f"**Now Playing:** {self.currently_playing[ctx.guild.id][0][1]}" +'\n' + retval)
-            em.set_thumbnail(url=ctx.guild.icon.url)
-            em.set_footer(text = ctx.author.name, icon_url = ctx.author.display_avatar)
-            await ctx.send(embed=em)
-            # await ctx.send(retval)
-        else:
-            await ctx.send("No music in the queue.")
-    '''
     
     @commands.command(name="queue", aliases=["q"], help="Displays all the songs currently in the queue")
     async def queue(self, ctx):
@@ -299,8 +237,3 @@ class music_cog(commands.Cog):
         em = Embed(title=f"{api.title} by {api.artist}", description=Lyrics)
         em.set_footer(text = interaction.user.name, icon_url = interaction.user.display_avatar)
         await interaction.edit_original_message(embed=em)
-
-'''
-def setup(bot):
-    bot.add_cog(music_cog(bot))
-'''
