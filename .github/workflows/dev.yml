@@ -33,5 +33,5 @@ jobs:
             cd ..
             source venv/bin/activate
             pip install -r requirements.txt
-            nohup python main.py > app.log 2>&1 &
+            nohup python main/main.py > app.log 2>&1 &
           EOF
