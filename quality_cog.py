@@ -47,4 +47,4 @@ class quality_cog(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(tapQuality(bot))
+    await bot.add_cog(quality_cog(bot))
