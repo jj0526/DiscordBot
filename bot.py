@@ -1,4 +1,3 @@
-# bot.py
 import os
 import random
 import discord
@@ -19,24 +18,6 @@ bot = commands.Bot(command_prefix="?", intents=intents)
 @bot.event
 async def on_ready():
     print(f"{bot.user.name} has connected to Discord!")
-
-
-@bot.command(name="uwu", help="Gives you an random uwu emoji")
-async def uwu_print(ctx):
-    uwu_list = [
-        "(◡ w ◡)",
-        "(。U⁄ ⁄ω⁄ ⁄ U。)",
-        "(„ᵕᴗᵕ„)",
-        "(◡ ω ◡)",
-        "( ͡U ω ͡U )",
-        " ( ｡ᵘ ᵕ ᵘ ｡)",
-        "(ᵘﻌᵘ)",
-        "(灬´ᴗ`灬)",
-    ]
-
-    response = random.choice(uwu_list)
-    await ctx.send(response)
-
 
 @bot.command(name="roll_dice", help="Simulates rolling dice.")
 async def roll(ctx, number_of_sides: int, member : discord.Member = None):

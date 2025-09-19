@@ -1,4 +1,3 @@
-import nextcord
 from nextcord.ext import commands
 
 class help_cog(commands.Cog):
