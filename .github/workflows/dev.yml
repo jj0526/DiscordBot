@@ -22,9 +22,11 @@ jobs:
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             cd /home/ubuntu/music_bot
             if [ ! -d "music_bot" ]; then
-              git clone ${{ secrets.CLONE_URL }} music_bot
+              git clone ${{ secrets.CLONE_URL }} main
             else
-              cd music_bot
+              cd main
+              git reset --hard
+              git clean -fd
               git pull origin main
             fi
             python3 -m venv venv
