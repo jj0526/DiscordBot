@@ -21,15 +21,10 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             cd /home/ubuntu/music_bot
-            if [ ! -d "main" ]; then
-              git clone ${{ secrets.CLONE_URL }} main
-              cd main
-            else
-              cd main
-              git reset --hard
-              git clean -fd
-              git pull origin main
+            if [ -d "main" ]; then
+              rm -rf main
             fi
+            git clone ${{ secrets.CLONE_URL }} main
             cd ..
             source venv/bin/activate
             pip install -r requirements.txt
