@@ -21,7 +21,12 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             cd /home/ubuntu/music_bot
-            git pull origin main
+            if [ ! -d "music_bot" ]; then
+              git clone ${{ secrets.CLONE_URL }} music_bot
+            else
+              cd music_bot
+              git pull origin main
+            fi
             python3 -m venv venv
             source venv/bin/activate
             pip install -r requirements.txt
