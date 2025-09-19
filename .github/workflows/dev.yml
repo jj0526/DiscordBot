@@ -28,9 +28,9 @@ jobs:
             if [ -d "main" ]; then
               rm -rf main
             fi
-            
+
             git clone ${{ secrets.CLONE_URL }} main
-            cd ..
+            cd /home/ubuntu/music_bot
             source venv/bin/activate
             pip install -r requirements.txt
             nohup python main/main.py > app.log 2>&1 &
