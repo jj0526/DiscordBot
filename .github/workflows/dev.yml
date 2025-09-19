@@ -23,13 +23,13 @@ jobs:
             cd /home/ubuntu/music_bot
             if [ ! -d "main" ]; then
               git clone ${{ secrets.CLONE_URL }} main
+              cd main
             else
               cd main
               git reset --hard
               git clean -fd
               git pull origin main
             fi
-            python3 -m venv venv
             source venv/bin/activate
             pip install -r requirements.txt
             nohup python main.py > app.log 2>&1 &
