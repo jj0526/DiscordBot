@@ -6,7 +6,7 @@ class bunbae_cog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @commands.command(name="bunbae", aliases=["분배", "분배금"], help="Simulates rolling dice.")
+    @commands.command(name="bunbae", aliases=["분배", "분배금"], help="로아 경매 분배금을 계산합니다.")
     async def roll_dice(self, ctx, num_of_people: int, price: int, member: nextcord.Member = None):
         if member is None:
             member = ctx.author

@@ -9,10 +9,6 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
 
-print()
-print(TOKEN)
-print()
-
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
@@ -59,7 +55,4 @@ async def create_channel(ctx, channel_name="real-python"):
         print(f"Creating a new channel: {channel_name}")
         await guild.create_text_channel(channel_name)
 
-
-#bot.run(TOKEN)
-#bot.run(os.getenv('TOKEN'))
 bot.run(TOKEN)
