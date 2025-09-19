@@ -21,7 +21,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             cd /home/ubuntu/music_bot
-            if [ ! -d "music_bot" ]; then
+            if [ ! -d "main" ]; then
               git clone ${{ secrets.CLONE_URL }} main
             else
               cd main
