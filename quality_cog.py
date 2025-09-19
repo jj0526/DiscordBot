@@ -1,4 +1,5 @@
 from discord.ext import commands
+import discord
 import random
 
 class quality_cog(commands.Cog):
@@ -6,7 +7,7 @@ class quality_cog(commands.Cog):
         self.bot = bot
     
     @commands.command(name="quality", aliases=["품질", "품질작", "tap_quality"], help="tap your quality.")
-    async def tapQuality(self, ctx, member: nextcord.Member = None):
+    async def tapQuality(self, ctx, member: discord.Member = None):
         if member is None:
             member = ctx.author
         random_num = random.randint(0, 100000) #0.000 to 100.000%
