@@ -1,5 +1,4 @@
-import nextcord
-from nextcord.ext import commands
+from discord.ext import commands
 import random
 
 class roll_dice(commands.Cog):
