@@ -31,48 +31,59 @@ class music_cog(commands.Cog):
 
         return {'source': info['formats'][3]['url'], 'title': info['title']}
     
-    def play_next(self, ctx):
-        if len(self.music_queue[ctx.guild.id]) > 0:
-            self.is_playing[ctx.guild.id] = True
+    async def play_next(self, ctx):
+        guild_id = ctx.guild.id
 
-            m_url = self.music_queue[ctx.guild.id][0][0]['source']
+        if len(self.music_queue[guild_id]) > 0:
+            self.is_playing[guild_id] = True
+            song_data = self.music_queue[guild_id].pop(0)
+            self.currently_playing[guild_id].pop(0)
+            m_url = song_data[0]['source']
 
-            self.music_queue[ctx.guild.id].pop(0)
-            self.currently_playing[ctx.guild.id].pop(0)
-            self.vc.play(
-                discord.FFmpegPCMAudio(m_url, **self.FFMPEG_OPTIONS), 
-                after=lambda e: self.bot.loop.call_soon_threadsafe(
-                    asyncio.create_task, self.play_next(ctx)
-                ))
+            def after_play(error):
+                self.bot.loop.create_task(self.play_next(ctx))
+
+            self.vc_dict[guild_id].play(
+                discord.FFmpegPCMAudio(m_url, **self.FFMPEG_OPTIONS),
+                after=after_play
+            )
         else:
-            self.is_playing[ctx.guild.id] = False
+            self.is_playing[guild_id] = False
+            self.currently_playing[guild_id] = []
+            self.bot.loop.create_task(self.disconnect_after_timeout(ctx))
     
     async def play_music(self, ctx):
-        if len(self.music_queue[ctx.guild.id]) > 0:
-            self.is_playing[ctx.guild.id] = True
-            m_url = self.music_queue[ctx.guild.id][0][0]['source']
-            voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
+        guild_id = ctx.guild.id
 
-            if self.vc == None or not voice_client:
-                self.vc = await self.music_queue[ctx.guild.id][0][1].connect()
-                print("passing through here")
+        if len(self.music_queue[guild_id]) == 0:
+            self.is_playing[guild_id] = False
+            self.currently_playing[guild_id] = []
+            self.bot.loop.create_task(self.disconnect_after_timeout(ctx))
+            return
 
-                if self.vc == None:
-                    await ctx.send("Could not connect to the voice channel")
-                    return
-            else:
-                await self.vc.move_to(self.music_queue[ctx.guild.id][0][1])
-            
-            self.music_queue[ctx.guild.id].pop(0)
-            
+        self.is_playing[guild_id] = True
+        song_data = self.music_queue[guild_id][0]
+        m_url = song_data[0]['source']
+        voice_channel = song_data[1]
 
-            self.vc.play(discord.FFmpegPCMAudio(m_url, **self.FFMPEG_OPTIONS), after=lambda e: self.play_next(ctx))
-            
+        if not hasattr(self, 'vc_dict'):
+            self.vc_dict = {}
+
+        if guild_id not in self.vc_dict or not self.vc_dict[guild_id].is_connected():
+            self.vc_dict[guild_id] = await voice_channel.connect()
+            if not self.vc_dict[guild_id]:
+                await ctx.send("Could not connect to the voice channel")
+                return
         else:
-            self.is_playing[ctx.guild.id] = False
-            self.currently_playing[ctx.guild.id] = []  # Clear the currently playing song
-            self.bot.loop.create_task(self.disconnect_after_timeout(ctx))   # Disconnect from the voice channel
-        
+            await self.vc_dict[guild_id].move_to(voice_channel)
+
+        def after_play(error):
+            self.bot.loop.create_task(self.play_next(ctx))
+
+        self.vc_dict[guild_id].play(
+            discord.FFmpegPCMAudio(m_url, **self.FFMPEG_OPTIONS),
+            after=after_play
+        )
     
 async def disconnect_after_timeout(self, ctx, timeout=600):  # 600초 = 10분
     await asyncio.sleep(timeout)
