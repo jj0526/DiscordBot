@@ -84,7 +84,7 @@ async def disconnect_after_timeout(self, ctx, timeout=600):  # 600초 = 10분
             self.currently_playing[ctx.guild.id] = []
     
     
-    @commands.command(name="play", aliases=['p','playing'], help="Play the selected song from youtube")
+    @commands.command(name="play", aliases=['p', 'play', 'playing'], help="Play the selected song from youtube")
     async def play(self, ctx, *args):
         if ctx.guild.id in self.music_queue:
             pass
