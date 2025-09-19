@@ -14,6 +14,8 @@ class music_cog(commands.Cog):
         self.currently_playing = {}
         self.is_bot_connected = {}
 
+        self.vc_dict = {}
+
         self.music_queue = {}
         self.YDL_OPTIONS = {'format': 'm4a/bestaudio/best', 'postprocessors': [{'key': 'FFmpegExtractAudio','preferredcodec': 'm4a',}]}
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
@@ -37,7 +39,8 @@ class music_cog(commands.Cog):
         if len(self.music_queue[guild_id]) > 0:
             self.is_playing[guild_id] = True
             song_data = self.music_queue[guild_id].pop(0)
-            self.currently_playing[guild_id].pop(0)
+            if self.currently_playing[guild_id]:
+                self.currently_playing[guild_id].pop(0)
             m_url = song_data[0]['source']
 
             def after_play(error):
@@ -66,9 +69,6 @@ class music_cog(commands.Cog):
         m_url = song_data[0]['source']
         voice_channel = song_data[1]
 
-        if not hasattr(self, 'vc_dict'):
-            self.vc_dict = {}
-
         if guild_id not in self.vc_dict or not self.vc_dict[guild_id].is_connected():
             self.vc_dict[guild_id] = await voice_channel.connect()
             if not self.vc_dict[guild_id]:
@@ -87,10 +87,11 @@ class music_cog(commands.Cog):
     
 async def disconnect_after_timeout(self, ctx, timeout=600):  # 600초 = 10분
     await asyncio.sleep(timeout)
-    if not self.is_playing[ctx.guild.id] and not self.is_paused[ctx.guild.id]:
-        if self.vc and self.vc.is_connected():
+    guild_id = ctx.guild.id
+    if guild_id in self.vc_dict and self.vc_dict[guild_id].is_connected():
+        if guild_id in self.vc_dict and self.vc_dict[guild_id].is_connected():
             await ctx.send("10분 동안 노래가 없어 자동으로 퇴장합니다.")
-            await self.vc.disconnect()
+            await self.vc_dict[guild_id].disconnect()
             self.music_queue[ctx.guild.id] = []
             self.currently_playing[ctx.guild.id] = []
     
@@ -106,11 +107,12 @@ async def disconnect_after_timeout(self, ctx, timeout=600):  # 600초 = 10분
             self.currently_playing[ctx.guild.id] = []
         query = " ".join(args)
 
+        guild_id = ctx.guild.id
         voice_channel = ctx.message.author.voice.channel if ctx.message.author.voice else None
         if voice_channel is None:
             await ctx.send("Connect to a voice channel!")
         elif self.is_paused[ctx.guild.id]:
-            self.vc.resume()
+            self.vc_dict[guild_id].resume()
         else:
             song = self.search_yt(query)
             if type(song) == type(True):
@@ -129,26 +131,29 @@ async def disconnect_after_timeout(self, ctx, timeout=600):  # 600초 = 10분
     
     @commands.command(name="pause", help="Pauses the current song being played")
     async def pause(self, ctx, *args):
-        if self.is_playing[ctx.guild.id]:
-            self.is_playing[ctx.guild.id] = False
-            self.is_paused[ctx.guild.id] = True
-            self.vc.pause()
+        guild_id = ctx.guild.id
+        if self.is_playing[guild_id]:
+            self.is_playing[guild_id] = False
+            self.is_paused[guild_id] = True
+            self.vc_dict[guild_id].pause()
         elif self.is_paused[ctx.guild.id]:
-            self.vc.resume()
+            self.vc_dict[guild_id].resume()
             
     @commands.command(name="resume", aliases=["r"], help="Resumes playing the current song")
     async def resume(self, ctx, *args):
-        if self.is_paused[ctx.guild.id]:
-            self.is_playing[ctx.guild.id] = True
-            self.is_paused[ctx.guild.id] = False
-            self.vc.resume()
+        guild_id = ctx.guild.id
+        if self.is_paused[guild_id]:
+            self.is_playing[guild_id] = True
+            self.is_paused[guild_id] = False
+            self.vc_dict[guild_id].resume()
 
     @commands.command(name="skip", aliases=["s"], help="Skips the current song being played")
     async def skip(self, ctx):
-        if self.vc and self.vc.is_playing():
+        guild_id = ctx.guild.id
+        if self.vc_dict[guild_id] and self.vc_dict[guild_id].is_playing():
             #self.currently_playing[ctx.guild.id] = []
             #self.currently_playing[ctx.guild.id].pop(0)
-            self.vc.stop()
+            self.vc_dict[guild_id].stop()
             await ctx.send("Skipping current song")
         else:
             await ctx.send("No song is currently playing.")
@@ -184,8 +189,9 @@ async def disconnect_after_timeout(self, ctx, timeout=600):  # 600초 = 10분
 
     
     async def clearSongs(self, ctx):
-        if self.vc != None and self.is_playing[ctx.guild.id]:
-            self.vc.stop()
+        guild_id = ctx.guild.id
+        if self.vc_dict[guild_id] != None and self.is_playing[ctx.guild.id]:
+            self.vc_dict[guild_id].stop()
             self.is_playing[ctx.guild.id] = False
             self.is_paused[ctx.guild.id] = False #added
         self.music_queue[ctx.guild.id] = [] #pop all
@@ -199,10 +205,11 @@ async def disconnect_after_timeout(self, ctx, timeout=600):  # 600초 = 10분
     
     @commands.command(name="leave", aliases=["disconnect", "l", "d", "dc"], help="Kick the bot from the voice channel")
     async def leave(self, ctx):
+        guild_id = ctx.guild.id
         self.is_playing[ctx.guild.id] = False
         self.is_paused[ctx.guild.id] = False
         await self.clearSongs(ctx)
-        await self.vc.disconnect()
+        await self.vc_dict[guild_id].disconnect()
     
     @commands.command(name="lyric", help="Displays the lyrics of the currently playing song")
     async def lyric(self, ctx):
